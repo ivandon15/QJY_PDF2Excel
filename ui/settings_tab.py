@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLineEdit, QPushButton, QLabel, QTextEdit, QSizePolicy
 )
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 
 from config import load_config, save_config
@@ -11,9 +11,11 @@ from config import load_config, save_config
 
 class SettingsTab(QWidget):
     settings_saved = pyqtSignal()
+    _test_done = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
+        self._test_done.connect(self._on_test_done)
         self._setup_ui()
         self._load()
 
@@ -136,15 +138,13 @@ class SettingsTab(QWidget):
                 result = "✅ 连接成功"
             except Exception as e:
                 result = f"❌ 失败: {str(e)[:60]}"
-            from PyQt6.QtCore import QMetaObject, Qt
-            from PyQt6.QtCore import Q_ARG
-            self._test_result = result
-            QMetaObject.invokeMethod(self, "_on_test_done", Qt.ConnectionType.QueuedConnection)
+            self._test_done.emit(result)
 
         threading.Thread(target=run, daemon=True).start()
 
-    def _on_test_done(self):
-        self.test_status.setText(getattr(self, "_test_result", ""))
+    @pyqtSlot(str)
+    def _on_test_done(self, result):
+        self.test_status.setText(result)
         self.test_btn.setEnabled(True)
 
     def get_prompt(self) -> str:
