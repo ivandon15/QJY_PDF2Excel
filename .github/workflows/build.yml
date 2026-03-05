@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyinstaller PyQt6 PyMuPDF anthropic openpyxl Pillow python-dotenv
+
+      - name: Build .app
+        run: |
+          pyinstaller \
+            --name "PDF2Excel" \
+            --windowed \
+            --onedir \
+            --add-data "ui:ui" \
+            --hidden-import "anthropic" \
+            --hidden-import "fitz" \
+            --hidden-import "openpyxl" \
+            --hidden-import "dotenv" \
+            main.py
+
+      - name: Zip .app
+        run: cd dist && zip -r PDF2Excel-mac.zip PDF2Excel.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF2Excel-mac
+          path: dist/PDF2Excel-mac.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyinstaller PyQt6 PyMuPDF anthropic openpyxl Pillow python-dotenv
+
+      - name: Build .exe
+        run: |
+          pyinstaller `
+            --name "PDF2Excel" `
+            --windowed `
+            --onedir `
+            --add-data "ui;ui" `
+            --hidden-import "anthropic" `
+            --hidden-import "fitz" `
+            --hidden-import "openpyxl" `
+            --hidden-import "dotenv" `
+            main.py
+
+      - name: Zip dist
+        run: Compress-Archive -Path dist\PDF2Excel -DestinationPath dist\PDF2Excel-windows.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDF2Excel-windows
+          path: dist\PDF2Excel-windows.zip

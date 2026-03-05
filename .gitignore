@@ -1,0 +1,12 @@
+.env
+config.json
+regions.json
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+dist/
+build/
+*.spec
+output.xlsx
+files/*.pdf
